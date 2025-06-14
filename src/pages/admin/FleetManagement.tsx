@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -265,7 +264,7 @@ const FleetManagement = () => {
                     id="type"
                     className="w-full p-2 border border-gray-300 rounded-md"
                     value={vehicleForm.type}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, type: e.target.value })}
+                    onChange={(e) => setVehicleForm({ ...vehicleForm, type: e.target.value as Database['public']['Enums']['vehicle_type'] })}
                   >
                     <option value="economy">Economy</option>
                     <option value="compact">Compact</option>
@@ -372,7 +371,7 @@ const FleetManagement = () => {
                     id="status"
                     className="w-full p-2 border border-gray-300 rounded-md"
                     value={vehicleForm.status}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, status: e.target.value })}
+                    onChange={(e) => setVehicleForm({ ...vehicleForm, status: e.target.value as Database['public']['Enums']['vehicle_status'] })}
                   >
                     <option value="available">Available</option>
                     <option value="rented">Rented</option>
