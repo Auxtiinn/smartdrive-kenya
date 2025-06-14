@@ -13,7 +13,8 @@ import {
   Wrench,
   FileText,
   Shield,
-  Home
+  Home,
+  User
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -64,7 +65,7 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200">
+    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col h-full">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <Car className="h-8 w-8 text-blue-600" />
@@ -75,7 +76,7 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      <nav className="p-4">
+      <nav className="flex-1 p-4">
         <div className="space-y-2">
           {getMenuItems().map((item) => {
             const Icon = item.icon;
@@ -99,14 +100,19 @@ export const Sidebar = () => {
         </div>
       </nav>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-        <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm font-medium text-gray-900">{user?.email}</p>
-          <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+      <div className="p-4 border-t border-gray-100 bg-gray-50">
+        <div className="flex items-center gap-3 mb-4 p-3 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+            <User className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+            <p className="text-xs text-blue-600 capitalize font-medium">{userRole}</p>
+          </div>
         </div>
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full border-gray-300 hover:bg-gray-100 hover:border-gray-400 transition-colors"
           onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
