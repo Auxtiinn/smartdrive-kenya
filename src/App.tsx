@@ -21,6 +21,9 @@ import Maintenance from "./pages/admin/Maintenance";
 import Analytics from "./pages/admin/Analytics";
 import SystemDocs from "./pages/admin/SystemDocs";
 import SystemSettings from "./pages/admin/SystemSettings";
+import MyVehicles from "./pages/agent/MyVehicles";
+import Inspections from "./pages/agent/Inspections";
+import AgentMaintenance from "./pages/agent/Maintenance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,9 +53,9 @@ const AppContent = () => {
         <Route path="/admin/settings" element={<Layout><SystemSettings /></Layout>} />
         
         {/* Agent Routes */}
-        <Route path="/agent/vehicles" element={<Layout><div className="p-6"><h1 className="text-2xl font-bold">My Assigned Vehicles - Coming Soon</h1></div></Layout>} />
-        <Route path="/agent/inspections" element={<Layout><div className="p-6"><h1 className="text-2xl font-bold">Vehicle Inspections - Coming Soon</h1></div></Layout>} />
-        <Route path="/agent/maintenance" element={<Layout><div className="p-6"><h1 className="text-2xl font-bold">Maintenance Tasks - Coming Soon</h1></div></Layout>} />
+        <Route path="/agent/vehicles" element={<Layout><MyVehicles /></Layout>} />
+        <Route path="/agent/inspections" element={<Layout><Inspections /></Layout>} />
+        <Route path="/agent/maintenance" element={<Layout><AgentMaintenance /></Layout>} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

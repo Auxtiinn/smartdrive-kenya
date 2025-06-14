@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings, Bell, Mail, Database, Shield, Globe } from 'lucide-react';
 
 const SystemSettings = () => {
@@ -72,29 +72,39 @@ const SystemSettings = () => {
             </div>
             <div>
               <label className="text-sm font-medium">Currency</label>
-              <select
+              <Select
                 value={settings.currency}
-                onChange={(e) => handleSettingChange('currency', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                onValueChange={(value) => handleSettingChange('currency', value)}
               >
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="GBP">GBP - British Pound</option>
-                <option value="CAD">CAD - Canadian Dollar</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD - US Dollar</SelectItem>
+                  <SelectItem value="EUR">EUR - Euro</SelectItem>
+                  <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                  <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                  <SelectItem value="KES">KES - Kenyan Shilling</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label className="text-sm font-medium">Timezone</label>
-              <select
+              <Select
                 value={settings.timezone}
-                onChange={(e) => handleSettingChange('timezone', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                onValueChange={(value) => handleSettingChange('timezone', value)}
               >
-                <option value="UTC">UTC</option>
-                <option value="America/New_York">Eastern Time</option>
-                <option value="America/Chicago">Central Time</option>
-                <option value="America/Los_Angeles">Pacific Time</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UTC">UTC</SelectItem>
+                  <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                  <SelectItem value="America/Chicago">Central Time</SelectItem>
+                  <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                  <SelectItem value="Africa/Nairobi">East Africa Time</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
