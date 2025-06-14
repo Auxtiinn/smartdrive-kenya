@@ -9,22 +9,9 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Car, Users, Fuel, Settings, Calendar, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  type: string;
-  color: string;
-  seats: number;
-  transmission: string;
-  fuel_type: string;
-  daily_rate: number;
-  location: string;
-  features: string[];
-  images: string[];
-}
+type Vehicle = Database['public']['Tables']['vehicles']['Row'];
 
 const Vehicles = () => {
   const { user } = useAuth();
@@ -50,7 +37,7 @@ const Vehicles = () => {
         .eq('status', 'available');
 
       if (filters.type) {
-        query = query.eq('type', filters.type);
+        query = query.eq('type', filters.type as Database['public']['Enums']['vehicle_type']);
       }
       if (filters.location) {
         query = query.ilike('location', `%${filters.location}%`);
@@ -89,6 +76,12 @@ const Vehicles = () => {
   };
 
   const vehicleTypes = ['economy', 'compact', 'midsize', 'fullsize', 'luxury', 'suv', 'truck', 'van'];
+
+  const getFeatures = (features: Vehicle['features']): string[] => {
+    if (!features) return [];
+    if (Array.isArray(features)) return features as string[];
+    return [];
+  };
 
   if (loading) {
     return (
@@ -153,81 +146,84 @@ const Vehicles = () => {
 
       {/* Vehicle Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vehicles.map((vehicle) => (
-          <Card key={vehicle.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Car className="h-5 w-5 text-blue-600" />
-                {vehicle.year} {vehicle.make} {vehicle.model}
-              </CardTitle>
-              <CardDescription className="capitalize">
-                {vehicle.type} • {vehicle.color}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    {vehicle.seats} seats
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Settings className="h-4 w-4" />
-                    {vehicle.transmission}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Fuel className="h-4 w-4" />
-                    {vehicle.fuel_type}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <MapPin className="h-4 w-4" />
-                  {vehicle.location}
-                </div>
-
-                {vehicle.features.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-1">Features:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {vehicle.features.slice(0, 3).map((feature, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                      {vehicle.features.length > 3 && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                          +{vehicle.features.length - 3} more
-                        </span>
-                      )}
+        {vehicles.map((vehicle) => {
+          const features = getFeatures(vehicle.features);
+          return (
+            <Card key={vehicle.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Car className="h-5 w-5 text-blue-600" />
+                  {vehicle.year} {vehicle.make} {vehicle.model}
+                </CardTitle>
+                <CardDescription className="capitalize">
+                  {vehicle.type} • {vehicle.color}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      {vehicle.seats} seats
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Settings className="h-4 w-4" />
+                      {vehicle.transmission}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Fuel className="h-4 w-4" />
+                      {vehicle.fuel_type}
                     </div>
                   </div>
-                )}
 
-                <div className="pt-3 border-t">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <MapPin className="h-4 w-4" />
+                    {vehicle.location}
+                  </div>
+
+                  {features.length > 0 && (
                     <div>
-                      <p className="text-2xl font-bold text-green-600">
-                        ${vehicle.daily_rate}
-                      </p>
-                      <p className="text-sm text-gray-600">per day</p>
+                      <p className="text-sm font-medium text-gray-700 mb-1">Features:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {features.slice(0, 3).map((feature, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                        {features.length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                            +{features.length - 3} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <Button
-                      onClick={() => handleBookVehicle(vehicle.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      Book Now
-                    </Button>
+                  )}
+
+                  <div className="pt-3 border-t">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold text-green-600">
+                          ${vehicle.daily_rate}
+                        </p>
+                        <p className="text-sm text-gray-600">per day</p>
+                      </div>
+                      <Button
+                        onClick={() => handleBookVehicle(vehicle.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Book Now
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {vehicles.length === 0 && (

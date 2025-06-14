@@ -7,26 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Car, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { Car, Plus, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  type: string;
-  license_plate: string;
-  color: string;
-  seats: number;
-  transmission: string;
-  fuel_type: string;
-  mileage: number;
-  daily_rate: number;
-  status: string;
-  location: string;
-  features: string[];
-}
+type Vehicle = Database['public']['Tables']['vehicles']['Row'];
+type VehicleInsert = Database['public']['Tables']['vehicles']['Insert'];
 
 const FleetManagement = () => {
   const { toast } = useToast();
@@ -38,7 +24,7 @@ const FleetManagement = () => {
     make: '',
     model: '',
     year: new Date().getFullYear(),
-    type: 'economy',
+    type: 'economy' as Database['public']['Enums']['vehicle_type'],
     license_plate: '',
     color: '',
     seats: 5,
@@ -46,7 +32,7 @@ const FleetManagement = () => {
     fuel_type: 'gasoline',
     mileage: 0,
     daily_rate: 0,
-    status: 'available',
+    status: 'available' as Database['public']['Enums']['vehicle_status'],
     location: '',
     features: '',
   });
@@ -80,8 +66,20 @@ const FleetManagement = () => {
     e.preventDefault();
     
     try {
-      const vehicleData = {
-        ...vehicleForm,
+      const vehicleData: VehicleInsert = {
+        make: vehicleForm.make,
+        model: vehicleForm.model,
+        year: vehicleForm.year,
+        type: vehicleForm.type,
+        license_plate: vehicleForm.license_plate,
+        color: vehicleForm.color,
+        seats: vehicleForm.seats,
+        transmission: vehicleForm.transmission,
+        fuel_type: vehicleForm.fuel_type,
+        mileage: vehicleForm.mileage,
+        daily_rate: vehicleForm.daily_rate,
+        status: vehicleForm.status,
+        location: vehicleForm.location,
         features: vehicleForm.features ? vehicleForm.features.split(',').map(f => f.trim()) : [],
       };
 
@@ -118,9 +116,22 @@ const FleetManagement = () => {
 
   const handleEdit = (vehicle: Vehicle) => {
     setEditingVehicle(vehicle);
+    const features = Array.isArray(vehicle.features) ? (vehicle.features as string[]).join(', ') : '';
     setVehicleForm({
-      ...vehicle,
-      features: vehicle.features.join(', '),
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      type: vehicle.type,
+      license_plate: vehicle.license_plate,
+      color: vehicle.color,
+      seats: vehicle.seats,
+      transmission: vehicle.transmission,
+      fuel_type: vehicle.fuel_type,
+      mileage: vehicle.mileage || 0,
+      daily_rate: Number(vehicle.daily_rate),
+      status: vehicle.status,
+      location: vehicle.location || '',
+      features,
     });
     setDialogOpen(true);
   };
@@ -174,6 +185,12 @@ const FleetManagement = () => {
       case 'out_of_service': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getFeatures = (features: Vehicle['features']): string[] => {
+    if (!features) return [];
+    if (Array.isArray(features)) return features as string[];
+    return [];
   };
 
   if (loading) {
@@ -401,50 +418,53 @@ const FleetManagement = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vehicles.map((vehicle) => (
-          <Card key={vehicle.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5 text-blue-600" />
-                  {vehicle.year} {vehicle.make} {vehicle.model}
-                </CardTitle>
-                <Badge className={getStatusColor(vehicle.status)}>
-                  {vehicle.status.replace('_', ' ')}
-                </Badge>
-              </div>
-              <CardDescription>
-                {vehicle.license_plate} • {vehicle.color} {vehicle.type}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><strong>Daily Rate:</strong> ${vehicle.daily_rate}</p>
-                <p><strong>Location:</strong> {vehicle.location}</p>
-                <p><strong>Mileage:</strong> {vehicle.mileage.toLocaleString()} miles</p>
-                <p><strong>Seats:</strong> {vehicle.seats} • <strong>Transmission:</strong> {vehicle.transmission}</p>
-              </div>
-              
-              <div className="flex gap-2 mt-4">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(vehicle)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDelete(vehicle.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {vehicles.map((vehicle) => {
+          const features = getFeatures(vehicle.features);
+          return (
+            <Card key={vehicle.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className="h-5 w-5 text-blue-600" />
+                    {vehicle.year} {vehicle.make} {vehicle.model}
+                  </CardTitle>
+                  <Badge className={getStatusColor(vehicle.status)}>
+                    {vehicle.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <CardDescription>
+                  {vehicle.license_plate} • {vehicle.color} {vehicle.type}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p><strong>Daily Rate:</strong> ${vehicle.daily_rate}</p>
+                  <p><strong>Location:</strong> {vehicle.location}</p>
+                  <p><strong>Mileage:</strong> {vehicle.mileage?.toLocaleString()} miles</p>
+                  <p><strong>Seats:</strong> {vehicle.seats} • <strong>Transmission:</strong> {vehicle.transmission}</p>
+                </div>
+                
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(vehicle)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDelete(vehicle.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {vehicles.length === 0 && (

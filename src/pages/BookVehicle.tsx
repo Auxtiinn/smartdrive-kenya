@@ -10,18 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Car, Calendar, MapPin, DollarSign } from 'lucide-react';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  type: string;
-  color: string;
-  daily_rate: number;
-  location: string;
-  features: string[];
-}
+type Vehicle = Database['public']['Tables']['vehicles']['Row'];
 
 const BookVehicle = () => {
   const { vehicleId } = useParams();
@@ -63,8 +54,8 @@ const BookVehicle = () => {
       setVehicle(data);
       setBookingData(prev => ({
         ...prev,
-        pickupLocation: data.location,
-        returnLocation: data.location,
+        pickupLocation: data.location || '',
+        returnLocation: data.location || '',
       }));
     } catch (error) {
       console.error('Error fetching vehicle:', error);
@@ -147,6 +138,12 @@ const BookVehicle = () => {
     }
   };
 
+  const getFeatures = (features: Vehicle['features']): string[] => {
+    if (!features) return [];
+    if (Array.isArray(features)) return features as string[];
+    return [];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -166,6 +163,8 @@ const BookVehicle = () => {
       </div>
     );
   }
+
+  const features = getFeatures(vehicle.features);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -199,11 +198,11 @@ const BookVehicle = () => {
                 <DollarSign className="h-4 w-4" />
                 <span className="text-xl font-bold">${vehicle.daily_rate}/day</span>
               </div>
-              {vehicle.features.length > 0 && (
+              {features.length > 0 && (
                 <div>
                   <p className="font-medium text-gray-700 mb-2">Features:</p>
                   <div className="flex flex-wrap gap-2">
-                    {vehicle.features.map((feature, index) => (
+                    {features.map((feature, index) => (
                       <span
                         key={index}
                         className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded"
