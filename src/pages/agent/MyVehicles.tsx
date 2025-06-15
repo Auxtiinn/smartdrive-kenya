@@ -75,7 +75,7 @@ const MyVehicles = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 bg-background min-h-screen">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -89,7 +89,7 @@ const MyVehicles = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-background">
+    <div className="p-6 bg-background min-h-screen space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Car className="h-8 w-8 text-blue-600" />
@@ -203,3 +203,4 @@ const MyVehicles = () => {
 };
 
 export default MyVehicles;
+
