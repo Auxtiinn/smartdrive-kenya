@@ -9,6 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      backups: {
+        Row: {
+          backup_type: string
+          created_at: string
+          created_by: string | null
+          file_url: string
+          id: string
+        }
+        Insert: {
+          backup_type?: string
+          created_at?: string
+          created_by?: string | null
+          file_url: string
+          id?: string
+        }
+        Update: {
+          backup_type?: string
+          created_at?: string
+          created_by?: string | null
+          file_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_locks: {
         Row: {
           created_at: string
@@ -248,6 +280,24 @@ export type Database = {
         }
         Relationships: []
       }
+      settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       vehicle_conditions: {
         Row: {
           booking_id: string | null
@@ -326,6 +376,7 @@ export type Database = {
       }
       vehicles: {
         Row: {
+          agent_id: string | null
           color: string
           created_at: string
           daily_rate: number
@@ -346,6 +397,7 @@ export type Database = {
           year: number
         }
         Insert: {
+          agent_id?: string | null
           color: string
           created_at?: string
           daily_rate: number
@@ -366,6 +418,7 @@ export type Database = {
           year: number
         }
         Update: {
+          agent_id?: string | null
           color?: string
           created_at?: string
           daily_rate?: number
@@ -385,7 +438,15 @@ export type Database = {
           updated_at?: string
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -408,6 +469,8 @@ export type Database = {
         | "active"
         | "completed"
         | "cancelled"
+        | "awaiting_payment"
+        | "scheduled"
       condition_status: "excellent" | "good" | "fair" | "poor" | "damaged"
       user_role: "customer" | "admin" | "agent"
       vehicle_status: "available" | "rented" | "maintenance" | "out_of_service"
@@ -541,6 +604,8 @@ export const Constants = {
         "active",
         "completed",
         "cancelled",
+        "awaiting_payment",
+        "scheduled",
       ],
       condition_status: ["excellent", "good", "fair", "poor", "damaged"],
       user_role: ["customer", "admin", "agent"],

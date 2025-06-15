@@ -4,71 +4,77 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Car, Calendar, AlertTriangle, CheckCircle, Plus } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { InspectionModal } from '@/components/modals/InspectionModal';
+import type { Database } from '@/integrations/supabase/types';
 
 interface Inspection {
   id: string;
   vehicle_id: string;
   vehicle_name: string;
-  inspection_type: string;
-  status: string;
-  scheduled_date: string;
-  completed_date?: string;
+  condition_type: string;
   overall_condition: string;
-  issues_found: number;
+  created_at: string;
 }
 
 const Inspections = () => {
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInspectionModal, setShowInspectionModal] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate loading inspections
-    setTimeout(() => {
-      setInspections([
-        {
-          id: '1',
-          vehicle_id: 'ABC123',
-          vehicle_name: '2022 Toyota Camry',
-          inspection_type: 'Pre-rental',
-          status: 'completed',
-          scheduled_date: '2024-01-15',
-          completed_date: '2024-01-15',
-          overall_condition: 'good',
-          issues_found: 0
-        },
-        {
-          id: '2',
-          vehicle_id: 'DEF456',
-          vehicle_name: '2021 Honda Civic',
-          inspection_type: 'Post-rental',
-          status: 'pending',
-          scheduled_date: '2024-01-16',
-          overall_condition: 'pending',
-          issues_found: 0
-        },
-        {
-          id: '3',
-          vehicle_id: 'GHI789',
-          vehicle_name: '2023 Nissan Altima',
-          inspection_type: 'Routine',
-          status: 'completed',
-          scheduled_date: '2024-01-14',
-          completed_date: '2024-01-14',
-          overall_condition: 'fair',
-          issues_found: 2
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    if (user) {
+      fetchInspections();
     }
+  }, [user]);
+
+  const fetchInspections = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('vehicle_conditions')
+        .select(`
+          id,
+          vehicle_id,
+          condition_type,
+          overall_condition,
+          created_at,
+          vehicles!inner(make, model, year, license_plate)
+        `)
+        .eq('reporter_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedInspections = data?.map(item => ({
+        id: item.id,
+        vehicle_id: item.vehicle_id,
+        vehicle_name: `${item.vehicles.year} ${item.vehicles.make} ${item.vehicles.model}`,
+        condition_type: item.condition_type,
+        overall_condition: item.overall_condition,
+        created_at: item.created_at
+      })) || [];
+
+      setInspections(formattedInspections);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load inspections.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartInspection = () => {
+    setShowInspectionModal(true);
   };
 
   const getConditionColor = (condition: string) => {
@@ -92,6 +98,19 @@ const Inspections = () => {
     );
   }
 
+  const pendingCount = inspections.filter(i => 
+    new Date(i.created_at).toDateString() === new Date().toDateString() && 
+    i.overall_condition === 'pending'
+  ).length;
+
+  const completedTodayCount = inspections.filter(i => 
+    new Date(i.created_at).toDateString() === new Date().toDateString()
+  ).length;
+
+  const issuesCount = inspections.filter(i => 
+    i.overall_condition === 'poor' || i.overall_condition === 'damaged'
+  ).length;
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -102,7 +121,7 @@ const Inspections = () => {
             <p className="text-gray-600">Conduct and manage vehicle condition assessments</p>
           </div>
         </div>
-        <Button>
+        <Button onClick={handleStartInspection}>
           <Plus className="mr-2 h-4 w-4" />
           New Inspection
         </Button>
@@ -115,7 +134,7 @@ const Inspections = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-yellow-600">
-              {inspections.filter(i => i.status === 'pending').length}
+              {pendingCount}
             </div>
           </CardContent>
         </Card>
@@ -126,8 +145,7 @@ const Inspections = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">
-              {inspections.filter(i => i.status === 'completed' && 
-                new Date(i.completed_date || '').toDateString() === new Date().toDateString()).length}
+              {completedTodayCount}
             </div>
           </CardContent>
         </Card>
@@ -138,7 +156,7 @@ const Inspections = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">
-              {inspections.reduce((total, i) => total + i.issues_found, 0)}
+              {issuesCount}
             </div>
           </CardContent>
         </Card>
@@ -148,7 +166,7 @@ const Inspections = () => {
         <CardHeader>
           <CardTitle>Recent Inspections</CardTitle>
           <CardDescription>
-            All scheduled and completed vehicle inspections
+            All completed vehicle inspections
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -157,49 +175,60 @@ const Inspections = () => {
               <div key={inspection.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    {inspection.status === 'completed' ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Shield className="h-5 w-5 text-yellow-600" />
-                    )}
-                    <Badge className={getStatusColor(inspection.status)}>
-                      {inspection.status}
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <Badge className="bg-green-100 text-green-800">
+                      completed
                     </Badge>
                   </div>
                   <div>
-                    <div className="font-semibold">{inspection.inspection_type} Inspection</div>
+                    <div className="font-semibold">{inspection.condition_type.replace('_', ' ')} Inspection</div>
                     <div className="text-sm text-gray-600">{inspection.vehicle_name}</div>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <Car className="h-3 w-3" />
-                        {inspection.vehicle_id}
+                        {inspection.vehicle_id.slice(0, 8)}...
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {new Date(inspection.scheduled_date).toLocaleDateString()}
+                        {new Date(inspection.created_at).toLocaleDateString()}
                       </span>
-                      {inspection.overall_condition !== 'pending' && (
-                        <span className={`font-medium ${getConditionColor(inspection.overall_condition)}`}>
-                          {inspection.overall_condition}
-                        </span>
-                      )}
-                      {inspection.issues_found > 0 && (
-                        <span className="flex items-center gap-1 text-red-600">
-                          <AlertTriangle className="h-3 w-3" />
-                          {inspection.issues_found} issues
-                        </span>
-                      )}
+                      <span className={`font-medium ${getConditionColor(inspection.overall_condition)}`}>
+                        {inspection.overall_condition}
+                      </span>
                     </div>
                   </div>
                 </div>
                 <Button variant="outline" size="sm">
-                  {inspection.status === 'pending' ? 'Start Inspection' : 'View Report'}
+                  View Report
                 </Button>
               </div>
             ))}
           </div>
+          
+          {inspections.length === 0 && (
+            <div className="text-center py-8">
+              <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Inspections Yet</h3>
+              <p className="text-gray-600 mb-4">Start by conducting your first vehicle inspection.</p>
+              <Button onClick={handleStartInspection}>
+                <Plus className="mr-2 h-4 w-4" />
+                Start First Inspection
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <InspectionModal
+        isOpen={showInspectionModal}
+        onClose={() => {
+          setShowInspectionModal(false);
+          setSelectedVehicleId('');
+        }}
+        vehicleId={selectedVehicleId}
+        vehicleName="Selected Vehicle"
+        inspectionType="maintenance"
+      />
     </div>
   );
 };

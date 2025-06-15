@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import { Layout } from "@/components/Layout";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useSplashScreen } from "@/hooks/useSplashScreen";
@@ -70,7 +70,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppContent />
+          <SettingsProvider>
+            <AppContent />
+          </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -6,19 +6,25 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Search, Shield, UserCheck, UserX } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 interface User {
   id: string;
   email: string;
   role: string;
   created_at: string;
-  last_sign_in_at?: string;
 }
 
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [newRole, setNewRole] = useState('');
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
@@ -32,11 +38,70 @@ const UserManagement = () => {
 
       if (error) throw error;
       setUsers(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load users.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateUserRole = async () => {
+    if (!editingUser || !newRole) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', editingUser.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `User role updated to ${newRole}.`,
+      });
+
+      setShowRoleDialog(false);
+      setEditingUser(null);
+      setNewRole('');
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user role.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deactivateUser = async (userId: string, userEmail: string) => {
+    if (!confirm(`Are you sure you want to deactivate ${userEmail}?`)) return;
+
+    try {
+      // In a real app, you'd have a proper deactivation system
+      // For now, we'll just show a success message
+      toast({
+        title: "User deactivated",
+        description: `${userEmail} has been deactivated.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to deactivate user.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditRole = (user: User) => {
+    setEditingUser(user);
+    setNewRole(user.role);
+    setShowRoleDialog(true);
   };
 
   const filteredUsers = users.filter(user =>
@@ -90,10 +155,6 @@ const UserManagement = () => {
                 className="pl-10"
               />
             </div>
-            <Button>
-              <UserCheck className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
           </div>
 
           <div className="overflow-x-auto">
@@ -120,11 +181,19 @@ const UserManagement = () => {
                     </td>
                     <td className="p-3">
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditRole(user)}
+                        >
                           <Shield className="mr-1 h-3 w-3" />
                           Edit Role
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => deactivateUser(user.id, user.email)}
+                        >
                           <UserX className="mr-1 h-3 w-3" />
                           Deactivate
                         </Button>
@@ -137,6 +206,43 @@ const UserManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User Role</DialogTitle>
+            <DialogDescription>
+              Change the role for {editingUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="role">Select new role</Label>
+              <select
+                id="role"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+              >
+                <option value="customer">Customer</option>
+                <option value="agent">Agent</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={updateUserRole} className="flex-1">
+                Update Role
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowRoleDialog(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

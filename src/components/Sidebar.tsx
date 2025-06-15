@@ -1,5 +1,5 @@
-
 import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/contexts/SettingsContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -14,11 +14,14 @@ import {
   FileText,
   Shield,
   Home,
-  User
+  User,
+  Moon,
+  Sun
 } from 'lucide-react';
 
 export const Sidebar = () => {
   const { user, userRole, signOut } = useAuth();
+  const { darkMode, toggleDarkMode } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -65,13 +68,13 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col h-full">
-      <div className="p-6 border-b border-gray-200">
+    <div className="w-64 bg-white dark:bg-gray-900 shadow-lg border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
           <Car className="h-8 w-8 text-blue-600" />
           <div>
-            <h1 className="text-xl font-bold text-gray-900">SmartDrive</h1>
-            <p className="text-sm text-gray-500 capitalize">{userRole} Portal</p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">SmartDrive</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{userRole} Portal</p>
           </div>
         </div>
       </div>
@@ -100,24 +103,36 @@ export const Sidebar = () => {
         </div>
       </nav>
 
-      <div className="p-4 border-t border-gray-100 bg-gray-50">
-        <div className="flex items-center gap-3 mb-4 p-3 bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div className="flex items-center gap-3 mb-4 p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600">
           <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
             <User className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
-            <p className="text-xs text-blue-600 capitalize font-medium">{userRole}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user?.email}</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 capitalize font-medium">{userRole}</p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          className="w-full border-gray-300 hover:bg-gray-100 hover:border-gray-400 transition-colors"
-          onClick={handleSignOut}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
-        </Button>
+        
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            onClick={toggleDarkMode}
+          >
+            {darkMode ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            onClick={handleSignOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
       </div>
     </div>
   );

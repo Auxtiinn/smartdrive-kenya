@@ -3,57 +3,58 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Car, MapPin, Calendar, Fuel, Settings } from 'lucide-react';
+import { Car, MapPin, Calendar, Fuel, Settings, Plus, Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { AddVehicleModal } from '@/components/modals/AddVehicleModal';
+import { InspectionModal } from '@/components/modals/InspectionModal';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Vehicle {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  license_plate: string;
-  status: string;
-  location: string;
-  mileage: number;
-  fuel_level: number;
-  last_inspection: string;
-}
+type Vehicle = Database['public']['Tables']['vehicles']['Row'];
 
 const MyVehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showInspectionModal, setShowInspectionModal] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate loading assigned vehicles
-    setTimeout(() => {
-      setVehicles([
-        {
-          id: '1',
-          make: 'Toyota',
-          model: 'Camry',
-          year: 2022,
-          license_plate: 'ABC123',
-          status: 'available',
-          location: 'Nairobi Central',
-          mileage: 15420,
-          fuel_level: 85,
-          last_inspection: '2024-01-10'
-        },
-        {
-          id: '2',
-          make: 'Honda',
-          model: 'Civic',
-          year: 2021,
-          license_plate: 'DEF456',
-          status: 'rented',
-          location: 'Westlands',
-          mileage: 22100,
-          fuel_level: 60,
-          last_inspection: '2024-01-08'
-        }
-      ]);
+    if (user) {
+      fetchVehicles();
+    }
+  }, [user]);
+
+  const fetchVehicles = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .eq('agent_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setVehicles(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to load vehicles.",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  const handlePerformInspection = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setShowInspectionModal(true);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,6 +91,10 @@ const MyVehicles = () => {
             <p className="text-gray-600">Manage and monitor your assigned vehicles</p>
           </div>
         </div>
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Vehicle
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -116,20 +121,21 @@ const MyVehicles = () => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Settings className="h-4 w-4" />
-                  <span>{vehicle.mileage.toLocaleString()} km</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Fuel className="h-4 w-4" />
-                  <span>{vehicle.fuel_level}% fuel</span>
+                  <span>{vehicle.mileage?.toLocaleString()} km</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="h-4 w-4" />
-                  <span>Last inspected: {new Date(vehicle.last_inspection).toLocaleDateString()}</span>
+                  <span>Daily Rate: ${vehicle.daily_rate}</span>
                 </div>
               </div>
               
               <div className="pt-4 space-y-2">
-                <Button className="w-full" size="sm">
+                <Button 
+                  className="w-full" 
+                  size="sm"
+                  onClick={() => handlePerformInspection(vehicle)}
+                >
+                  <Shield className="mr-2 h-4 w-4" />
                   Perform Inspection
                 </Button>
                 <Button variant="outline" className="w-full" size="sm">
@@ -145,8 +151,31 @@ const MyVehicles = () => {
         <div className="text-center py-12">
           <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Vehicles Assigned</h3>
-          <p className="text-gray-600">You haven't been assigned any vehicles yet.</p>
+          <p className="text-gray-600 mb-4">You haven't been assigned any vehicles yet.</p>
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Your First Vehicle
+          </Button>
         </div>
+      )}
+
+      <AddVehicleModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onVehicleAdded={fetchVehicles}
+      />
+
+      {selectedVehicle && (
+        <InspectionModal
+          isOpen={showInspectionModal}
+          onClose={() => {
+            setShowInspectionModal(false);
+            setSelectedVehicle(null);
+          }}
+          vehicleId={selectedVehicle.id}
+          vehicleName={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model}`}
+          inspectionType="maintenance"
+        />
       )}
     </div>
   );
