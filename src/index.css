@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -54,7 +55,8 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Set --background to the same as --sidebar-background for full consistency in dark mode */
+    --background: var(--sidebar-background);
     --foreground: 210 40% 98%;
 
     --card: 222.2 84% 4.9%;
