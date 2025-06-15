@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -107,7 +106,7 @@ const fetchAnalytics = async () => {
     .select("status");
 
   if (fleetErr) throw fleetErr;
-  const { data: profiles, error: userErr } = await supabase
+  const { data: profiles, error: userErr, count: customersCount } = await supabase
     .from("profiles")
     .select("id", { count: "exact", head: true });
   if (userErr) throw userErr;
@@ -139,7 +138,8 @@ const fetchAnalytics = async () => {
     totalVehicles > 0 ? ((rented / totalVehicles) * 100).toFixed(1) : "0.0";
 
   // Total customers
-  const customersCount = profiles?.length || 0;
+  // Use the correct customersCount from the metadata
+  const customersCount = customersCount || 0;
 
   return {
     revenueData: monthData,
