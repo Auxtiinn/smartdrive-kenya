@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { User, Mail, Phone, MapPin, Shield } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Profile = () => {
-  const { user, userRole, updateProfile } = useAuth();
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -20,20 +21,51 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      setProfileData({
-        full_name: user.user_metadata?.full_name || '',
-        phone: user.user_metadata?.phone || '',
-        address: user.user_metadata?.address || '',
-      });
+      fetchProfile();
     }
   }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, phone, address')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        setProfileData({
+          full_name: data.full_name || '',
+          phone: data.phone || '',
+          address: data.address || '',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await updateProfile(profileData);
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user?.id,
+          email: user?.email,
+          full_name: profileData.full_name,
+          phone: profileData.phone,
+          address: profileData.address,
+          role: userRole
+        });
       
       if (error) throw error;
 
@@ -54,10 +86,10 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-2xl mx-auto bg-background">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-600">Manage your account information</p>
+        <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
+        <p className="text-muted-foreground">Manage your account information</p>
       </div>
 
       <div className="space-y-6">
@@ -77,16 +109,16 @@ const Profile = () => {
               <div>
                 <Label htmlFor="email">Email Address</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <Mail className="h-4 w-4 text-gray-400" />
+                  <Mail className="h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     value={user?.email || ''}
                     disabled
-                    className="bg-gray-50"
+                    className="bg-muted"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Email cannot be changed from this page
                 </p>
               </div>
@@ -94,7 +126,7 @@ const Profile = () => {
               <div>
                 <Label htmlFor="full_name">Full Name</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4 text-gray-400" />
+                  <User className="h-4 w-4 text-muted-foreground" />
                   <Input
                     id="full_name"
                     value={profileData.full_name}
@@ -109,7 +141,7 @@ const Profile = () => {
               <div>
                 <Label htmlFor="phone">Phone Number</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <Phone className="h-4 w-4 text-gray-400" />
+                  <Phone className="h-4 w-4 text-muted-foreground" />
                   <Input
                     id="phone"
                     type="tel"
@@ -125,7 +157,7 @@ const Profile = () => {
               <div>
                 <Label htmlFor="address">Address</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
                   <Input
                     id="address"
                     value={profileData.address}
@@ -157,14 +189,14 @@ const Profile = () => {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-full">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
                 <Shield className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="font-medium text-gray-900 capitalize">
+                <p className="font-medium text-foreground capitalize">
                   {userRole} Account
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {userRole === 'customer' && 'You can browse and book vehicles'}
                   {userRole === 'agent' && 'You can manage vehicle inspections and field operations'}
                   {userRole === 'admin' && 'You have full system access and management capabilities'}

@@ -90,7 +90,8 @@ const Bookings = () => {
         description: "Your booking has been successfully cancelled.",
       });
 
-      fetchBookings();
+      // Refresh the bookings list to reflect the cancellation
+      await fetchBookings();
     } catch (error) {
       console.error('Error cancelling booking:', error);
       toast({
@@ -103,12 +104,12 @@ const Bookings = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed': return 'bg-blue-100 text-blue-800';
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'confirmed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'completed': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
 
@@ -121,12 +122,12 @@ const Bookings = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-foreground">
           {userRole === 'customer' ? 'My Bookings' : 'All Bookings'}
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           {userRole === 'customer' 
             ? 'View and manage your vehicle bookings' 
             : 'Manage all customer bookings'
@@ -153,7 +154,7 @@ const Bookings = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <div>
                     <p className="font-medium">Dates</p>
@@ -163,7 +164,7 @@ const Bookings = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <div>
                     <p className="font-medium">Pickup</p>
@@ -171,7 +172,7 @@ const Bookings = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <div>
                     <p className="font-medium">Return</p>
@@ -179,7 +180,7 @@ const Bookings = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <DollarSign className="h-4 w-4" />
                   <div>
                     <p className="font-medium">Total Cost</p>
@@ -191,14 +192,14 @@ const Bookings = () => {
               </div>
 
               {booking.booking_notes && (
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="font-medium text-gray-700 mb-1">Notes:</p>
-                  <p className="text-sm text-gray-600">{booking.booking_notes}</p>
+                <div className="mb-4 p-3 bg-muted rounded-lg">
+                  <p className="font-medium text-foreground mb-1">Notes:</p>
+                  <p className="text-sm text-muted-foreground">{booking.booking_notes}</p>
                 </div>
               )}
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Clock className="h-4 w-4" />
                   Booked on {new Date(booking.created_at).toLocaleDateString()}
                 </div>
@@ -207,7 +208,7 @@ const Bookings = () => {
                   <Button
                     variant="outline"
                     onClick={() => cancelBooking(booking.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
                   >
                     Cancel Booking
                   </Button>
@@ -220,9 +221,9 @@ const Bookings = () => {
 
       {bookings.length === 0 && (
         <div className="text-center py-12">
-          <Calendar className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
-          <p className="text-gray-600">
+          <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No bookings found</h3>
+          <p className="text-muted-foreground">
             {userRole === 'customer' 
               ? "You haven't made any bookings yet." 
               : "No customer bookings to display."

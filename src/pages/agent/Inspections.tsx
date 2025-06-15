@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { InspectionModal } from '@/components/modals/InspectionModal';
+import { InspectionReportModal } from '@/components/InspectionReportModal';
 import type { Database } from '@/integrations/supabase/types';
 
 interface Inspection {
@@ -23,6 +24,8 @@ const Inspections = () => {
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInspectionModal, setShowInspectionModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
   const { user } = useAuth();
   const { toast } = useToast();
@@ -77,12 +80,18 @@ const Inspections = () => {
     setShowInspectionModal(true);
   };
 
+  const handleViewReport = (inspection: Inspection) => {
+    setSelectedInspection(inspection);
+    setShowReportModal(true);
+  };
+
   const getConditionColor = (condition: string) => {
     switch (condition) {
-      case 'excellent': return 'text-green-600';
-      case 'good': return 'text-blue-600';
-      case 'fair': return 'text-yellow-600';
-      case 'poor': return 'text-red-600';
+      case 'excellent': return 'text-green-500 font-bold';
+      case 'good': return 'text-green-600 font-semibold';
+      case 'fair': return 'text-yellow-500 font-semibold';
+      case 'poor': return 'text-red-500 font-semibold';
+      case 'damaged': return 'text-black dark:text-white font-bold';
       default: return 'text-gray-600';
     }
   };
@@ -91,8 +100,8 @@ const Inspections = () => {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
@@ -112,13 +121,13 @@ const Inspections = () => {
   ).length;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-background">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-blue-600" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Vehicle Inspections</h1>
-            <p className="text-gray-600">Conduct and manage vehicle condition assessments</p>
+            <h1 className="text-3xl font-bold text-foreground">Vehicle Inspections</h1>
+            <p className="text-muted-foreground">Conduct and manage vehicle condition assessments</p>
           </div>
         </div>
         <Button onClick={handleStartInspection}>
@@ -172,18 +181,18 @@ const Inspections = () => {
         <CardContent>
           <div className="space-y-4">
             {inspections.map((inspection) => (
-              <div key={inspection.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+              <div key={inspection.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                       completed
                     </Badge>
                   </div>
                   <div>
                     <div className="font-semibold">{inspection.condition_type.replace('_', ' ')} Inspection</div>
-                    <div className="text-sm text-gray-600">{inspection.vehicle_name}</div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="text-sm text-muted-foreground">{inspection.vehicle_name}</div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Car className="h-3 w-3" />
                         {inspection.vehicle_id.slice(0, 8)}...
@@ -198,7 +207,11 @@ const Inspections = () => {
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleViewReport(inspection)}
+                >
                   View Report
                 </Button>
               </div>
@@ -207,9 +220,9 @@ const Inspections = () => {
           
           {inspections.length === 0 && (
             <div className="text-center py-8">
-              <Shield className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Inspections Yet</h3>
-              <p className="text-gray-600 mb-4">Start by conducting your first vehicle inspection.</p>
+              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No Inspections Yet</h3>
+              <p className="text-muted-foreground mb-4">Start by conducting your first vehicle inspection.</p>
               <Button onClick={handleStartInspection}>
                 <Plus className="mr-2 h-4 w-4" />
                 Start First Inspection
@@ -228,6 +241,15 @@ const Inspections = () => {
         vehicleId={selectedVehicleId}
         vehicleName="Selected Vehicle"
         inspectionType="maintenance"
+      />
+
+      <InspectionReportModal
+        isOpen={showReportModal}
+        onClose={() => {
+          setShowReportModal(false);
+          setSelectedInspection(null);
+        }}
+        inspection={selectedInspection}
       />
     </div>
   );
