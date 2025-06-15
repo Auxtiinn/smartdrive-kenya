@@ -106,7 +106,7 @@ const fetchAnalytics = async () => {
     .select("status");
 
   if (fleetErr) throw fleetErr;
-  const { data: profiles, error: userErr, count: customersCount } = await supabase
+  const { data: profiles, error: userErr, count: profilesCount } = await supabase
     .from("profiles")
     .select("id", { count: "exact", head: true });
   if (userErr) throw userErr;
@@ -138,8 +138,7 @@ const fetchAnalytics = async () => {
     totalVehicles > 0 ? ((rented / totalVehicles) * 100).toFixed(1) : "0.0";
 
   // Total customers
-  // Use the correct customersCount from the metadata
-  const customersCount = customersCount || 0;
+  const customersCount = profilesCount || 0;
 
   return {
     revenueData: monthData,
