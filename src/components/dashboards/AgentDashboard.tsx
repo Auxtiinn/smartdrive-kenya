@@ -4,10 +4,10 @@ import { Car, CheckCircle, AlertTriangle, Wrench } from 'lucide-react';
 
 export const AgentDashboard = () => {
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Agent Dashboard</h1>
-        <p className="text-gray-600">Manage vehicle inspections and field operations</p>
+        <h1 className="text-3xl font-bold text-foreground">Agent Dashboard</h1>
+        <p className="text-muted-foreground">Manage vehicle inspections and field operations</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -63,7 +63,7 @@ export const AgentDashboard = () => {
             <CardDescription>Your scheduled activities for today</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No tasks scheduled</p>
               <p className="text-sm">Check back later for assignments</p>
@@ -77,7 +77,7 @@ export const AgentDashboard = () => {
             <CardDescription>Your latest condition reports and inspections</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No reports yet</p>
               <p className="text-sm">Start by creating a vehicle inspection</p>
@@ -88,3 +88,4 @@ export const AgentDashboard = () => {
     </div>
   );
 };
+
