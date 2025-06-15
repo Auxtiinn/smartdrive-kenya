@@ -201,7 +201,7 @@ const FleetManagement = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Fleet Management</h1>

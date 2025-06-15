@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -92,7 +91,7 @@ const Vehicles = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse Vehicles</h1>
         <p className="text-gray-600">Find the perfect vehicle for your needs</p>

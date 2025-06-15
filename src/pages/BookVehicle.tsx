@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -167,7 +166,7 @@ const BookVehicle = () => {
   const features = getFeatures(vehicle.features);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8">
         <Button variant="outline" onClick={() => navigate('/vehicles')} className="mb-4">
           ← Back to Vehicles

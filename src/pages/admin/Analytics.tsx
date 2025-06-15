@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, TrendingUp, DollarSign, Users, Car, Calendar } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -22,7 +21,7 @@ const Analytics = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="flex items-center gap-3">
         <BarChart3 className="h-8 w-8 text-blue-600" />
         <div>

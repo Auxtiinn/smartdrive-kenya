@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, CheckCircle, AlertTriangle, Wrench } from 'lucide-react';
 
@@ -88,4 +87,3 @@ export const AgentDashboard = () => {
     </div>
   );
 };
-

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, BookOpen, Code, Settings, Shield, Database } from 'lucide-react';
 
@@ -37,7 +36,7 @@ const SystemDocs = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="flex items-center gap-3">
         <FileText className="h-8 w-8 text-blue-600" />
         <div>

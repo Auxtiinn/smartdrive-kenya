@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -115,14 +114,14 @@ const Bookings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-background">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">
           {userRole === 'customer' ? 'My Bookings' : 'All Bookings'}

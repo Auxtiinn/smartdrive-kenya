@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,7 +85,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto bg-background">
+    <div className="p-6 max-w-2xl mx-auto bg-background min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
         <p className="text-muted-foreground">Manage your account information</p>

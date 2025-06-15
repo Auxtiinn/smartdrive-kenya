@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type MaintenanceLog = Database['public']['Tables']['maintenance_logs']['Row'];
 
-const AgentMaintenance = () => {
+const Maintenance = () => {
   const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -102,7 +101,7 @@ const AgentMaintenance = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-6 bg-background min-h-screen">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
@@ -119,7 +118,7 @@ const AgentMaintenance = () => {
   ).length;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Wrench className="h-8 w-8 text-blue-600" />
@@ -257,4 +256,4 @@ const AgentMaintenance = () => {
   );
 };
 
-export default AgentMaintenance;
+export default Maintenance;

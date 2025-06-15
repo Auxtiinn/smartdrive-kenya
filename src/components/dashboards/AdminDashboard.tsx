@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, Calendar, Users, DollarSign, TrendingUp } from 'lucide-react';
@@ -111,7 +110,7 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
         <p className="text-gray-600 dark:text-gray-300">Monitor and manage your car rental business</p>

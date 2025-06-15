@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ export const CustomerDashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Welcome back!</h1>
         <p className="text-gray-600">Ready to find your perfect rental car?</p>
