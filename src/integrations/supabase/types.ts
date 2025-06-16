@@ -259,6 +259,7 @@ export type Database = {
           id: string
           phone: string | null
           role: string | null
+          signup_source: string | null
         }
         Insert: {
           address?: string | null
@@ -268,6 +269,7 @@ export type Database = {
           id: string
           phone?: string | null
           role?: string | null
+          signup_source?: string | null
         }
         Update: {
           address?: string | null
@@ -277,6 +279,7 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: string | null
+          signup_source?: string | null
         }
         Relationships: []
       }

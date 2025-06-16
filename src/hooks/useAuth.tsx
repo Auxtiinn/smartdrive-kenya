@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,7 @@ interface AuthContextType {
   session: Session | null;
   userRole: UserRole | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role?: UserRole) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, role?: UserRole, phone?: string, signupSource?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (data: { full_name?: string; phone?: string; address?: string }) => Promise<{ error: any }>;
@@ -71,7 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'customer') => {
+  const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'customer', phone?: string, signupSource?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -82,7 +81,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
-            role: role
+            role: role,
+            phone: phone,
+            signup_source: signupSource
           }
         }
       });
@@ -104,7 +105,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             id: data.user.id,
             email: email,
             full_name: fullName,
-            role: role
+            role: role,
+            phone: phone,
+            signup_source: signupSource
           });
 
         if (profileError) {

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,8 +47,10 @@ const Auth = () => {
     const password = formData.get('password') as string;
     const fullName = formData.get('fullName') as string;
     const role = formData.get('role') as 'customer' | 'admin' | 'agent';
+    const phone = formData.get('phone') as string;
+    const signupSource = formData.get('signupSource') as string;
 
-    const { error } = await signUp(email, password, fullName, role);
+    const { error } = await signUp(email, password, fullName, role, phone, signupSource);
     
     setIsLoading(false);
   };
@@ -128,6 +131,16 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder="Your phone number"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
                     <Input
                       id="password"
@@ -136,6 +149,22 @@ const Auth = () => {
                       placeholder="Create a password"
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signupSource">How did you hear about us?</Label>
+                    <Select name="signupSource" defaultValue="">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Instagram">Instagram</SelectItem>
+                        <SelectItem value="Google">Google</SelectItem>
+                        <SelectItem value="Facebook">Facebook</SelectItem>
+                        <SelectItem value="TikTok">TikTok</SelectItem>
+                        <SelectItem value="X">X</SelectItem>
+                        <SelectItem value="Youtube">Youtube</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Account Type</Label>
