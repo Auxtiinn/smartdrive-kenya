@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,22 +35,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user role from profiles table
+          // Fetch user role and check if user is active
           setTimeout(async () => {
             try {
               const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('role')
+                .select('role, active')
                 .eq('id', session.user.id)
                 .single();
               
               if (error) {
-                console.error('Error fetching user role:', error);
+                console.error('Error fetching user profile:', error);
               } else {
+                // Check if user is deactivated
+                if (profile?.active === false) {
+                  await supabase.auth.signOut();
+                  toast({
+                    title: "Account Deactivated",
+                    description: "Your account has been deactivated. Please contact an administrator.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
                 setUserRole(profile?.role as UserRole || 'customer');
               }
             } catch (err) {
-              console.error('Error in role fetch:', err);
+              console.error('Error in profile fetch:', err);
             }
           }, 0);
         } else {
@@ -68,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [toast]);
 
   const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'customer', phone?: string, signupSource?: string) => {
     try {
@@ -107,7 +118,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             full_name: fullName,
             role: role,
             phone: phone,
-            signup_source: signupSource
+            signup_source: signupSource,
+            active: true
           });
 
         if (profileError) {

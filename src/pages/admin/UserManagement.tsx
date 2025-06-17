@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,13 +7,14 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Search, Shield, UserCheck, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 interface User {
   id: string;
   email: string;
   role: string;
+  active: boolean;
   created_at: string;
 }
 
@@ -33,7 +35,7 @@ const UserManagement = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, role, created_at');
+        .select('id, email, role, active, created_at');
 
       if (error) throw error;
       setUsers(data || []);
@@ -78,20 +80,28 @@ const UserManagement = () => {
     }
   };
 
-  const deactivateUser = async (userId: string, userEmail: string) => {
-    if (!confirm(`Are you sure you want to deactivate ${userEmail}?`)) return;
+  const toggleUserActivation = async (userId: string, userEmail: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} ${userEmail}?`)) return;
 
     try {
-      // In a real app, you'd have a proper deactivation system
-      // For now, we'll just show a success message
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active: !currentStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
+
       toast({
-        title: "User deactivated",
-        description: `${userEmail} has been deactivated.`,
+        title: "Success",
+        description: `User has been ${action}d successfully.`,
       });
+
+      fetchUsers();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to deactivate user.",
+        description: error.message || `Failed to ${action} user.`,
         variant: "destructive",
       });
     }
@@ -109,18 +119,24 @@ const UserManagement = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'agent': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-green-100 text-green-800';
+      case 'admin': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'agent': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      default: return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
     }
+  };
+
+  const getStatusColor = (active: boolean) => {
+    return active 
+      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
   };
 
   if (loading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     );
@@ -131,8 +147,8 @@ const UserManagement = () => {
       <div className="flex items-center gap-3">
         <Users className="h-8 w-8 text-blue-600" />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage system users and their roles</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
+          <p className="text-gray-600 dark:text-gray-300">Manage system users and their roles</p>
         </div>
       </div>
 
@@ -159,23 +175,29 @@ const UserManagement = () => {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-3 font-semibold">Email</th>
-                  <th className="text-left p-3 font-semibold">Role</th>
-                  <th className="text-left p-3 font-semibold">Created</th>
-                  <th className="text-left p-3 font-semibold">Actions</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">Email</th>
+                  <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">Role</th>
+                  <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">Status</th>
+                  <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">Created</th>
+                  <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3">{user.email}</td>
+                  <tr key={user.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="p-3 text-gray-900 dark:text-white">{user.email}</td>
                     <td className="p-3">
                       <Badge className={getRoleColor(user.role)}>
                         {user.role}
                       </Badge>
                     </td>
                     <td className="p-3">
+                      <Badge className={getStatusColor(user.active)}>
+                        {user.active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-gray-900 dark:text-white">
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-3">
@@ -191,10 +213,19 @@ const UserManagement = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => deactivateUser(user.id, user.email)}
+                          onClick={() => toggleUserActivation(user.id, user.email, user.active)}
                         >
-                          <UserX className="mr-1 h-3 w-3" />
-                          Deactivate
+                          {user.active ? (
+                            <>
+                              <UserX className="mr-1 h-3 w-3" />
+                              Deactivate
+                            </>
+                          ) : (
+                            <>
+                              <UserCheck className="mr-1 h-3 w-3" />
+                              Activate
+                            </>
+                          )}
                         </Button>
                       </div>
                     </td>
@@ -219,7 +250,7 @@ const UserManagement = () => {
               <Label htmlFor="role">Select new role</Label>
               <select
                 id="role"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value)}
               >
