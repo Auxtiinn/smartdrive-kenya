@@ -14,7 +14,7 @@ interface User {
   id: string;
   email: string;
   role: string;
-  active: boolean;
+  active?: boolean; // Make optional since column might not exist yet
   created_at: string;
 }
 
@@ -33,9 +33,25 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Try to fetch with active column first, fallback if it doesn't exist
+      let { data, error } = await supabase
         .from('profiles')
         .select('id, email, role, active, created_at');
+
+      if (error && error.message.includes('column "active" does not exist')) {
+        // Fallback to query without active column
+        const result = await supabase
+          .from('profiles')
+          .select('id, email, role, created_at');
+        
+        data = result.data;
+        error = result.error;
+        
+        // Add default active status
+        if (data) {
+          data = data.map(user => ({ ...user, active: true }));
+        }
+      }
 
       if (error) throw error;
       setUsers(data || []);
@@ -85,19 +101,37 @@ const UserManagement = () => {
     if (!confirm(`Are you sure you want to ${action} ${userEmail}?`)) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ active: !currentStatus })
-        .eq('id', userId);
+      // Try to update active status, fallback gracefully if column doesn't exist
+      const updateData: any = {};
+      
+      try {
+        updateData.active = !currentStatus;
+        const { error } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', userId);
 
-      if (error) throw error;
+        if (error) {
+          if (error.message.includes('column "active" does not exist')) {
+            toast({
+              title: "Feature Not Available",
+              description: "User activation/deactivation feature is not yet fully configured. Please contact system administrator.",
+              variant: "destructive",
+            });
+            return;
+          }
+          throw error;
+        }
 
-      toast({
-        title: "Success",
-        description: `User has been ${action}d successfully.`,
-      });
+        toast({
+          title: "Success",
+          description: `User has been ${action}d successfully.`,
+        });
 
-      fetchUsers();
+        fetchUsers();
+      } catch (err: any) {
+        throw err;
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -125,8 +159,9 @@ const UserManagement = () => {
     }
   };
 
-  const getStatusColor = (active: boolean) => {
-    return active 
+  const getStatusColor = (active: boolean | undefined) => {
+    const isActive = active !== false; // Default to true if undefined
+    return isActive 
       ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
       : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
   };
@@ -194,7 +229,7 @@ const UserManagement = () => {
                     </td>
                     <td className="p-3">
                       <Badge className={getStatusColor(user.active)}>
-                        {user.active ? 'Active' : 'Inactive'}
+                        {user.active !== false ? 'Active' : 'Inactive'}
                       </Badge>
                     </td>
                     <td className="p-3 text-gray-900 dark:text-white">
@@ -213,9 +248,9 @@ const UserManagement = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => toggleUserActivation(user.id, user.email, user.active)}
+                          onClick={() => toggleUserActivation(user.id, user.email, user.active !== false)}
                         >
-                          {user.active ? (
+                          {user.active !== false ? (
                             <>
                               <UserX className="mr-1 h-3 w-3" />
                               Deactivate

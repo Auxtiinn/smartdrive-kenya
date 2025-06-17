@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,9 +45,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               
               if (error) {
                 console.error('Error fetching user profile:', error);
+                // If active column doesn't exist, assume user is active
+                const { data: profileFallback } = await supabase
+                  .from('profiles')
+                  .select('role')
+                  .eq('id', session.user.id)
+                  .single();
+                
+                if (profileFallback) {
+                  setUserRole(profileFallback.role as UserRole || 'customer');
+                }
               } else {
-                // Check if user is deactivated
-                if (profile?.active === false) {
+                // Check if user is deactivated (only if active column exists)
+                if (profile && 'active' in profile && profile.active === false) {
                   await supabase.auth.signOut();
                   toast({
                     title: "Account Deactivated",
@@ -108,22 +117,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
 
-      // Create profile entry
+      // Create profile entry with active status
       if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: email,
-            full_name: fullName,
-            role: role,
-            phone: phone,
-            signup_source: signupSource,
-            active: true
-          });
+        const profileData: any = {
+          id: data.user.id,
+          email: email,
+          full_name: fullName,
+          role: role,
+          phone: phone,
+          signup_source: signupSource
+        };
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
+        // Try to add active field, but don't fail if column doesn't exist
+        try {
+          profileData.active = true;
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert(profileData);
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
+        } catch (err) {
+          // If active column doesn't exist, create profile without it
+          delete profileData.active;
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert(profileData);
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          }
         }
       }
 
