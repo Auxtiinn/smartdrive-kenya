@@ -25,6 +25,9 @@ import MyVehicles from "./pages/agent/MyVehicles";
 import Inspections from "./pages/agent/Inspections";
 import AgentMaintenance from "./pages/agent/Maintenance";
 import NotFound from "./pages/NotFound";
+import AustinHome from "./pages/AustinHome";
+import AustinBrowseCars from "./pages/AustinBrowseCars";
+import AustinCarDetails from "./pages/AustinCarDetails";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +59,11 @@ const AppContent = () => {
         <Route path="/agent/vehicles" element={<Layout><MyVehicles /></Layout>} />
         <Route path="/agent/inspections" element={<Layout><Inspections /></Layout>} />
         <Route path="/agent/maintenance" element={<Layout><AgentMaintenance /></Layout>} />
+        
+        {/* Austin Pages Routes */}
+        <Route path="/austin/home" element={<AustinHome />} />
+        <Route path="/austin/browse-cars" element={<AustinBrowseCars />} />
+        <Route path="/austin/car-details/:vehicleId" element={<AustinCarDetails />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

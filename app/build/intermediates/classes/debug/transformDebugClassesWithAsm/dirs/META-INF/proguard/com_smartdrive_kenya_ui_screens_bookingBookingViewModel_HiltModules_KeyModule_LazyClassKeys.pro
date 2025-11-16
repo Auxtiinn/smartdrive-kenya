@@ -1,0 +1,4 @@
+-keep,allowobfuscation,allowshrinking class com.smartdrive.kenya.ui.screens.auth.AuthViewModel
+-keep,allowobfuscation,allowshrinking class com.smartdrive.kenya.ui.screens.auth.AuthViewModel
+-keep,allowobfuscation,allowshrinking class com.smartdrive.kenya.ui.screens.booking.BookingViewModel
+-keep,allowobfuscation,allowshrinking class com.smartdrive.kenya.ui.screens.booking.BookingViewModel
