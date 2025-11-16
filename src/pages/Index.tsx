@@ -56,6 +56,13 @@ const Index = () => {
               Learn More
             </Button>
           </div>
+          <div className="mt-6">
+            <Link to="/austin/home">
+              <Button size="sm" variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50">
+                🎨 Try Austin's Mobile UI Design
+              </Button>
+            </Link>
+          </div>
 
           {/* Trust Indicators */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
